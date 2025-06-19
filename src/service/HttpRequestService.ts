@@ -1,6 +1,5 @@
-import type { PostData, SingInData, SingUpData } from "./index";
+import type { PostData, SingInData, SingUpData, CommentData } from "./index";
 import axios from "axios";
-import { S3Service } from "./S3Service";
 
 const url =
   process.env.REACT_APP_API_URL || "https://twitter-ieea.onrender.com/api";
@@ -21,22 +20,105 @@ const httpRequestService = {
     }
   },
   createPost: async (data: PostData) => {
-    const res = await axios.post(`${url}/post`, data, {
+    try {
+      let imageKeys: string[] = [];
+      console.log("files", data.images);
+
+      // Step 1: If there are images, get upload URLs
+      if (data.images && data.images.length > 0) {
+        const imageRequests = data.images.map((file) => {
+          // Handle case where file might be wrapped in an object
+          const actualFile = (file as any).fileExtension || file;
+          return {
+            fileExtension: actualFile.name
+              ? actualFile.name.split(".").pop()
+              : "jpg",
+            contentType: actualFile.type || "image/jpeg",
+          };
+        });
+
+        const uploadUrlResponse = await axios.post(
+          `${url}/post/images/upload-urls`,
+          {
+            images: imageRequests,
+          },
+          {
+            headers: {
+              Authorization: localStorage.getItem("token"),
+            },
+          }
+        );
+
+        if (uploadUrlResponse.status === 200) {
+          const uploadData = uploadUrlResponse.data;
+          console.log("Upload URL Response:", uploadData);
+
+          // Step 2: Upload each image to S3 using presigned URLs
+          for (let i = 0; i < data.images.length; i++) {
+            const file = data.images[i];
+            const actualFile = (file as any).fileExtension || file;
+
+            // Access the uploads array from the response
+            const uploadInfo = uploadData.uploads[i];
+            console.log("Upload info for image", i, ":", uploadInfo);
+
+            if (!uploadInfo || !uploadInfo.uploadUrl || !uploadInfo.imageKey) {
+              throw new Error(
+                `Invalid upload data for image ${i + 1}: ${JSON.stringify(
+                  uploadInfo
+                )}`
+              );
+            }
+
+            const { uploadUrl, imageKey } = uploadInfo;
+
+            const uploadResponse = await fetch(uploadUrl, {
+              method: "PUT",
+              body: actualFile,
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Failed to upload image ${i + 1}`);
+            }
+
+            imageKeys.push(imageKey);
+          }
+        }
+      }
+
+      // Step 3: Create post with image keys
+      const postData = {
+        content: data.content,
+        parentId: data.parentId,
+        images: imageKeys,
+      };
+
+      const res = await axios.post(`${url}/post`, postData, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+
+      if (res.status === 201) {
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+      throw error;
+    }
+  },
+
+  createComment: async (postId: string, data: CommentData) => {
+    const res = await axios.post(`${url}/comment/${postId}`, data, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
     });
-    if (res.status === 201) {
-      const { upload } = S3Service;
-      for (const imageUrl of res.data.images) {
-        const index: number = res.data.images.indexOf(imageUrl);
-        await upload(data.images![index], imageUrl);
-      }
-      return res.data;
-    }
+    return res.status === 201 ? res.data : null;
   },
+
   getPaginatedPosts: async (limit: number, after: string, query: string) => {
-    const res = await axios.get(`${url}/post/${query}`, {
+    const res = await axios.get(`${url}/post`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -50,7 +132,7 @@ const httpRequestService = {
     }
   },
   getPosts: async (query: string) => {
-    const res = await axios.get(`${url}/post/${query}`, {
+    const res = await axios.get(`${url}/post`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -119,7 +201,7 @@ const httpRequestService = {
   },
   followUser: async (userId: string) => {
     const res = await axios.post(
-      `${url}/follow/${userId}`,
+      `${url}/follower/follow/${userId}`,
       {},
       {
         headers: {
@@ -132,12 +214,16 @@ const httpRequestService = {
     }
   },
   unfollowUser: async (userId: string) => {
-    const res = await axios.delete(`${url}/follow/${userId}`, {
-      headers: {
-        Authorization: localStorage.getItem("token"),
-      },
-    });
-    if (res.status === 200) {
+    const res = await axios.post(
+      `${url}/follower/unfollow/${userId}`,
+      {},
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      }
+    );
+    if (res.status === 201) {
       return res.data;
     }
   },
@@ -145,12 +231,11 @@ const httpRequestService = {
     try {
       const cancelToken = axios.CancelToken.source();
 
-      const response = await axios.get(`${url}/user/search`, {
+      const response = await axios.get(`${url}/user/by_username/${username}`, {
         headers: {
           Authorization: localStorage.getItem("token"),
         },
         params: {
-          username,
           limit,
           skip,
         },
@@ -306,7 +391,7 @@ const httpRequestService = {
     limit: number,
     after: string
   ) => {
-    const res = await axios.get(`${url}/post/comment/by_post/${id}`, {
+    const res = await axios.get(`${url}/comment/${id}`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -320,7 +405,7 @@ const httpRequestService = {
     }
   },
   getCommentsByPostId: async (id: string) => {
-    const res = await axios.get(`${url}/post/comment/by_post/${id}`, {
+    const res = await axios.get(`${url}/comment/${id}`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },

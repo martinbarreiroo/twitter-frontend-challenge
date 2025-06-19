@@ -9,11 +9,18 @@ interface ProfileInfoContainerProps {
   username: string;
   profilePicture?: string;
 }
+
+const BUCKET_URL = process.env.REACT_APP_BUCKET_URL;
+
 const ProfileInfo = ({
   name,
   username,
   profilePicture,
 }: ProfileInfoContainerProps) => {
+  if (profilePicture) {
+    profilePicture = `${BUCKET_URL}/${profilePicture}`;
+  }
+  console.log(profilePicture);
   return (
     <StyledContainer gap={"32px"} flex={2} flexDirection={"row"}>
       <Avatar

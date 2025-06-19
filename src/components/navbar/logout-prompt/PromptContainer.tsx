@@ -14,7 +14,7 @@ export const StyledPromptContainer = styled.div`
   border-radius: 16px;
   border: 1px solid ${(props) => props.theme.colors.containerLine};
   transition: 0.3s ease-in-out;
-    box-shadow: 2px 2px 2px grey;
+  box-shadow: 2px 2px 2px grey;
 
   &:hover {
     cursor: pointer;
@@ -22,7 +22,7 @@ export const StyledPromptContainer = styled.div`
   }
 
   @media (max-width: 1265px) {
-    right:50%;
+    right: 50%;
     p {
       display: flex;
     }

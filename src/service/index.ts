@@ -17,6 +17,11 @@ export interface PostData {
   images?: File[];
 }
 
+export interface CommentData {
+  content: string;
+  images?: File[];
+}
+
 export interface Post {
   id: string;
   content: string;
@@ -55,8 +60,11 @@ export interface User {
   private: boolean;
   createdAt: Date;
   followers: Author[];
-  following: Author[];
+  followed: Author[];
+  following: boolean;
   posts: Post[];
+  followsYou?: boolean;
+  isPrivate?: boolean;
 }
 
 export interface MessageDTO {

@@ -15,6 +15,7 @@ class PostPage extends Component {
     this.state = {
       postId: window.location.href.split("/")[4],
       post: undefined,
+      refreshComments: 0, // Add this to trigger comment refresh
     };
 
     this.service = new HttpService().service;
@@ -41,6 +42,11 @@ class PostPage extends Component {
       });
   }
 
+  handleCommentCreated = () => {
+    // Trigger comment refresh by updating the refreshComments counter
+    this.setState({ refreshComments: this.state.refreshComments + 1 });
+  }
+
   render() {
     return (
       <StyledContainer borderRight={"1px solid #ebeef0"}>
@@ -59,11 +65,17 @@ class PostPage extends Component {
                 borderBottom={"1px solid #ebeef0"}
                 padding={"16px"}
               >
-                <TweetBox parentId={this.state.postId} />
+                <TweetBox 
+                  parentId={this.state.postId} 
+                  onCommentCreated={this.handleCommentCreated}
+                />
               </StyledContainer>
 
               <StyledContainer minHeight={"53.5vh"}>
-                <CommentFeed postId={this.state.postId} />
+                <CommentFeed 
+                  postId={this.state.postId} 
+                  refreshTrigger={this.state.refreshComments}
+                />
               </StyledContainer>
             </>
           ) : (

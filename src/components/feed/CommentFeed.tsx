@@ -4,10 +4,12 @@ import { useGetComments } from "../../hooks/useGetComments";
 
 interface CommentFeedProps {
   postId: string;
+  refreshTrigger?: number;
 }
-const CommentFeed = ({ postId }: CommentFeedProps) => {
+const CommentFeed = ({ postId, refreshTrigger }: CommentFeedProps) => {
   const { posts, loading } = useGetComments({
     postId,
+    refreshTrigger,
   });
 
   return (

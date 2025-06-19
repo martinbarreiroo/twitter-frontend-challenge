@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BackArrowIcon } from "../../components/icon/Icon";
 import Button from "../../components/button/Button";
-import {Post, User} from "../../service";
+import { Post, User } from "../../service";
 import AuthorData from "../../components/tweet/user-post-data/AuthorData";
 import ImageContainer from "../../components/tweet/tweet-image/ImageContainer";
 import { useLocation } from "react-router-dom";
@@ -20,7 +20,7 @@ const CommentPage = () => {
   const [content, setContent] = useState("");
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [images, setImages] = useState<File[]>([]);
-  const [user, setUser] = useState<User>()
+  const [user, setUser] = useState<User>();
   const postId = useLocation().pathname.split("/")[3];
   const service = useHttpRequestService();
   const { length, query } = useAppSelector((state) => state.user);
@@ -28,12 +28,12 @@ const CommentPage = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    handleGetUser().then(r => setUser(r))
+    handleGetUser().then((r) => setUser(r));
   }, []);
 
   const handleGetUser = async () => {
-    return await service.me()
-  }
+    return await service.me();
+  };
 
   useEffect(() => {
     window.innerWidth > 600 && exit();
@@ -55,12 +55,28 @@ const CommentPage = () => {
   };
 
   const handleSubmit = async () => {
-    setContent("");
-    setImages([]);
-    dispatch(setLength(length + 1));
-    const posts = await service.getPosts(query);
-    dispatch(updateFeed(posts));
-    exit();
+    try {
+      // Create the comment using the correct endpoint
+      const commentData = {
+        content: content,
+        images: images,
+      };
+
+      await service.createComment(postId, commentData);
+
+      // Reset form
+      setContent("");
+      setImages([]);
+
+      // Update feed
+      dispatch(setLength(length + 1));
+      const posts = await service.getPosts(query);
+      dispatch(updateFeed(posts));
+
+      exit();
+    } catch (error) {
+      console.error("Failed to create comment:", error);
+    }
   };
   const handleRemoveImage = (index: number) => {
     const newImages = images.filter((i, idx) => idx !== index);
