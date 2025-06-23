@@ -1,16 +1,16 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../../modal/Modal";
 import logo from "../../../assets/logo.png";
 import Button from "../../button/Button";
-import {useNavigate} from "react-router-dom";
-import {useTranslation} from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import SwitchButton from "../../switch/SwitchButton";
-import {ButtonType} from "../../button/StyledButton";
-import {StyledPromptContainer} from "./PromptContainer";
-import {StyledContainer} from "../../common/Container";
-import {StyledP} from "../../common/text";
-import {useHttpRequestService} from "../../../service/HttpRequestService";
-import {User} from "../../../service";
+import { ButtonType } from "../../button/StyledButton";
+import { StyledPromptContainer } from "./PromptContainer";
+import { StyledContainer } from "../../common/Container";
+import { StyledP } from "../../common/text";
+import { useHttpRequestService } from "../../../service/HttpRequestService";
+import { User } from "../../../service";
 
 interface LogoutPromptProps {
   show: boolean;
@@ -21,22 +21,20 @@ const LogoutPrompt = ({ show }: LogoutPromptProps) => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const service = useHttpRequestService()
-  const [user, setUser] = useState<User>()
-
+  const service = useHttpRequestService();
+  const [user, setUser] = useState<User>();
 
   useEffect(() => {
-    handleGetUser().then(r => setUser(r))
+    handleGetUser().then((r) => setUser(r));
   }, []);
 
   const handleGetUser = async () => {
-    return await service.me()
-  }
+    return await service.me();
+  };
 
   const handleClick = () => {
     setShowModal(true);
   };
-
 
   const handleLanguageChange = () => {
     if (i18n.language === "es") {

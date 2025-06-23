@@ -12,10 +12,9 @@ import {StyledTweetBoxContainer} from "./TweetBoxContainer";
 import {StyledContainer} from "../common/Container";
 import {StyledButtonContainer} from "./ButtonContainer";
 import {useDispatch, useSelector} from "react-redux";
-import {User} from "../../service";
 
 const TweetBox = (props) => {
-    const {parentId, close, mobile} = props;
+    const {parentId, close, mobile, onCommentCreated} = props;
     const [content, setContent] = useState("");
     const [images, setImages] = useState([]);
     const [imagesPreview, setImagesPreview] = useState([]);
@@ -44,9 +43,37 @@ const TweetBox = (props) => {
             setContent("");
             setImages([]);
             setImagesPreview([]);
-            dispatch(setLength(length + 1));
-            const posts = await httpService.getPosts(length + 1, "", query);
-            dispatch(updateFeed(posts));
+            const postData = {
+                content: content,
+                images: images.map((image) => ({
+                    fileExtension: image,
+                    type: image.type
+                })),
+            }
+            
+            let result;
+            if (parentId) {
+                // This is a comment, use the comment endpoint
+                const commentData = {content: postData.content};
+                result = await httpService.createComment(parentId, commentData);
+            } else {
+                // This is a regular post, use the post endpoint
+                result = await httpService.createPost({
+                    ...postData,
+                    parentId: parentId
+                });
+            }
+            
+            // If this is a comment (has parentId), call the callback instead of updating global feed
+            if (parentId && onCommentCreated) {
+                onCommentCreated();
+            } else {
+                // Only update global feed if this is a regular post (no parentId)
+                dispatch(setLength(length + 1));
+                const posts = await httpService.getPosts(length + 1, "", query);
+                dispatch(updateFeed(posts));
+            }
+            
             close && close();
         } catch (e) {
             console.log(e);
