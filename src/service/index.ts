@@ -30,8 +30,12 @@ export interface Post {
   createdAt: Date;
   authorId: string;
   author: Author;
-  reactions: Reaction[];
-  comments: Post[];
+  qtyComments: number;
+  qtyLikes: number;
+  qtyRetweets: number;
+  hasLiked: boolean;
+  hasRetweeted: boolean;
+  comments?: Post[];
 }
 
 export interface Reaction {
