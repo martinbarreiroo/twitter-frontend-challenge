@@ -199,6 +199,16 @@ const httpRequestService = {
       return res.data;
     }
   },
+  deleteReactionByPost: async (postId: string, type: string) => {
+    const res = await axios.delete(`${url}/reaction/${postId}/${type}`, {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    });
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
   followUser: async (userId: string) => {
     const res = await axios.post(
       `${url}/follower/follow/${userId}`,

@@ -29,41 +29,56 @@ const Tweet = ({ post }: TweetProps) => {
     handleGetUser().then((r) => setUser(r));
   }, []);
 
+  useEffect(() => {
+    setActualPost(post);
+  }, [post]);
+
   const handleGetUser = async () => {
     return await service.me();
   };
 
   const getCountByType = (type: string): number => {
-    return actualPost?.reactions?.filter((r) => r.type === type).length ?? 0;
+    switch (type) {
+      case "LIKE":
+        return actualPost?.qtyLikes ?? 0;
+      case "RETWEET":
+        return actualPost?.qtyRetweets ?? 0;
+      case "COMMENT":
+        return actualPost?.qtyComments ?? 0;
+      default:
+        return 0;
+    }
   };
 
   const handleReaction = async (type: string) => {
-    // Add null check here
-    if (!actualPost.reactions) {
-      console.warn("No reactions array found");
-      return;
-    }
+    try {
+      const hasReacted = hasReactedByType(type);
 
-    const reacted = actualPost.reactions.find(
-      (r) => r.type === type && r.userId === user?.id
-    );
-    if (reacted) {
-      await service.deleteReaction(reacted.id);
-    } else {
-      await service.createReaction(actualPost.id, type);
+      if (hasReacted) {
+        // User has already reacted, so remove the specific reaction type
+        await service.deleteReactionByPost(actualPost.id, type.toLowerCase());
+      } else {
+        // User hasn't reacted, so create new reaction
+        await service.createReaction(actualPost.id, type.toLowerCase());
+      }
+
+      // Refresh the post to get updated counts and reaction status
+      const newPost = await service.getPostById(post.id);
+      setActualPost(newPost);
+    } catch (error) {
+      console.error("Error handling reaction:", error);
     }
-    const newPost = await service.getPostById(post.id);
-    setActualPost(newPost);
   };
 
   const hasReactedByType = (type: string): boolean => {
-    // Add null check here
-    if (!actualPost.reactions || !Array.isArray(actualPost.reactions)) {
-      return false;
+    switch (type) {
+      case "LIKE":
+        return actualPost?.hasLiked ?? false;
+      case "RETWEET":
+        return actualPost?.hasRetweeted ?? false;
+      default:
+        return false;
     }
-    return actualPost.reactions.some(
-      (reaction) => reaction.type === type && reaction.userId === user?.id
-    );
   };
 
   return (
@@ -110,7 +125,7 @@ const Tweet = ({ post }: TweetProps) => {
       <StyledReactionsContainer>
         <Reaction
           img={IconType.CHAT}
-          count={actualPost?.comments?.length}
+          count={getCountByType("COMMENT")}
           reactionFunction={() =>
             window.innerWidth > 600
               ? setShowCommentModal(true)
