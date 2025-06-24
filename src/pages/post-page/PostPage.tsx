@@ -17,7 +17,7 @@ const PostPage = () => {
 
   const fetchPost = async () => {
     if (!postId) return;
-    
+
     try {
       const res = await service.getPostById(postId);
       setPost(res);
@@ -32,7 +32,7 @@ const PostPage = () => {
 
   const handleCommentCreated = () => {
     // Trigger comment refresh by updating the refreshComments counter
-    setRefreshComments(prev => prev + 1);
+    setRefreshComments((prev) => prev + 1);
   };
 
   return (
@@ -52,17 +52,14 @@ const PostPage = () => {
               borderBottom={"1px solid #ebeef0"}
               padding={"16px"}
             >
-              <TweetBox 
-                parentId={postId} 
+              <TweetBox
+                parentId={postId}
                 onCommentCreated={handleCommentCreated}
               />
             </StyledContainer>
 
             <StyledContainer minHeight={"53.5vh"}>
-              <CommentFeed 
-                postId={postId} 
-                refreshTrigger={refreshComments}
-              />
+              <CommentFeed postId={postId} refreshTrigger={refreshComments} />
             </StyledContainer>
           </>
         ) : (

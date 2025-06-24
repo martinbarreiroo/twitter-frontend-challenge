@@ -4,7 +4,7 @@ import Button from "../../components/button/Button";
 import { Post, User } from "../../service";
 import AuthorData from "../../components/tweet/user-post-data/AuthorData";
 import ImageContainer from "../../components/tweet/tweet-image/ImageContainer";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import TweetInput from "../../components/tweet-input/TweetInput";
 import ImageInput from "../../components/common/ImageInput";
@@ -19,7 +19,7 @@ const CommentPage = () => {
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [images, setImages] = useState<File[]>([]);
   const [user, setUser] = useState<User>();
-  const postId = useLocation().pathname.split("/")[3];
+  const { id: postId } = useParams<{ id: string }>();
   const service = useHttpRequestService();
   const { t } = useTranslation();
 
@@ -36,6 +36,8 @@ const CommentPage = () => {
   }, []);
 
   useEffect(() => {
+    if (!postId) return;
+
     service
       .getPostById(postId)
       .then((res) => {
@@ -51,6 +53,8 @@ const CommentPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!postId) return;
+
     try {
       // Create the comment using the correct endpoint
       const imageUrls = images.map((image) => URL.createObjectURL(image));

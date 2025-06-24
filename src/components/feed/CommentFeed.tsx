@@ -3,7 +3,7 @@ import Feed from "./Feed";
 import { useGetComments } from "../../hooks/useGetComments";
 
 interface CommentFeedProps {
-  postId: string;
+  postId: string | undefined;
   refreshTrigger?: number;
 }
 const CommentFeed = ({ postId, refreshTrigger }: CommentFeedProps) => {

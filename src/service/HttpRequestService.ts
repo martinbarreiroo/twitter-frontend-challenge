@@ -424,7 +424,7 @@ const httpRequestService = {
       return res.data;
     }
   },
-  getCommentsByPostId: async (id: string) => {
+  getCommentsByPostId: async (id: string | undefined) => {
     const res = await axios.get(`${url}/comment/${id}`, {
       headers: {
         Authorization: localStorage.getItem("token"),
