@@ -107,7 +107,7 @@ const TweetBox = (props) => {
             } else {
                 // Only update global feed if this is a regular post (no parentId)
                 dispatch(setLength(length + 1));
-                const posts = await httpService.getPosts(length + 1, "", query);
+                const posts = await httpService.getPosts(query);
                 dispatch(updateFeed(posts));
             }
             

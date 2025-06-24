@@ -8,10 +8,8 @@ import { useLocation } from "react-router-dom";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import TweetInput from "../../components/tweet-input/TweetInput";
 import ImageInput from "../../components/common/ImageInput";
-import { setLength, updateFeed } from "../../redux/user";
 import { useTranslation } from "react-i18next";
 import { ButtonType } from "../../components/button/StyledButton";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { StyledContainer } from "../../components/common/Container";
 import { StyledLine } from "../../components/common/Line";
 import { StyledP } from "../../components/common/text";
@@ -23,8 +21,6 @@ const CommentPage = () => {
   const [user, setUser] = useState<User>();
   const postId = useLocation().pathname.split("/")[3];
   const service = useHttpRequestService();
-  const { length, query } = useAppSelector((state) => state.user);
-  const dispatch = useAppDispatch();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -69,11 +65,7 @@ const CommentPage = () => {
       setContent("");
       setImages([]);
 
-      // Update feed
-      dispatch(setLength(length + 1));
-      const posts = await service.getPosts(query);
-      dispatch(updateFeed(posts));
-
+      // Just go back - don't update the global feed
       exit();
     } catch (error) {
       console.error("Failed to create comment:", error);

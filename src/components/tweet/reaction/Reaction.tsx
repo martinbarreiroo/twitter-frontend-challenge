@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon, IconType } from "../../icon/Icon";
 import { StyledReactionContainer } from "./ReactionContainer";
 
@@ -19,13 +19,25 @@ const Reaction = ({
   const [reactionCount, setReactionCount] = useState(count);
   const [reactionReacted, setReactionReacted] = useState(reacted);
 
+  useEffect(() => {
+    setReactionCount(count);
+  }, [count]);
+
+  useEffect(() => {
+    setReactionReacted(reacted);
+  }, [reacted]);
+
   const handleReaction = async () => {
     try {
       await reactionFunction();
-      setReactionCount(
-        reactionReacted ? reactionCount - increment : reactionCount + 1
-      );
-      setReactionReacted(!reactionReacted);
+      if (increment > 0) {
+        setReactionCount(
+          reactionReacted
+            ? reactionCount - increment
+            : reactionCount + increment
+        );
+        setReactionReacted(!reactionReacted);
+      }
     } catch (error) {
       console.log(error);
     }
