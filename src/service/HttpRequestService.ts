@@ -312,12 +312,16 @@ const httpRequestService = {
   },
 
   isLogged: async () => {
-    const res = await axios.get(`${url}/user/me`, {
-      headers: {
-        Authorization: localStorage.getItem("token"),
-      },
-    });
-    return res.status === 200;
+    try {
+      const res = await axios.get(`${url}/user/me`, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+      return res.status === 200;
+    } catch (error) {
+      return false;
+    }
   },
 
   getProfileView: async (id: string) => {

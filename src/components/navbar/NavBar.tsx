@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import NavItem from "./navItem/NavItem";
 import Button from "../button/Button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -16,8 +16,7 @@ import { StyledContainer } from "../common/Container";
 import { StyledIconContainer } from "./IconContainer";
 import { StyledNavItemsContainer } from "./navItem/NavItemsContainer";
 import { StyledP } from "../common/text";
-import { useHttpRequestService } from "../../service/HttpRequestService";
-import { User } from "../../service";
+import { useAuth } from "../../contexts/AuthContext";
 import ProfileLogoutPrompt from "../profile-logout/ProfileLogoutPrompt";
 
 const NavBar = () => {
@@ -25,17 +24,8 @@ const NavBar = () => {
   const navigate = useNavigate();
   const [tweetModalOpen, setTweetModalOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const service = useHttpRequestService();
-  const [user, setUser] = useState<User>();
+  const { user } = useAuth();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    handleGetUser().then((r) => setUser(r));
-  }, []);
-
-  const handleGetUser = async () => {
-    return await service.me();
-  };
 
   const handleAvatarClick = () => {
     if (window.innerWidth < 1265) {

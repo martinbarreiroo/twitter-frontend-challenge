@@ -8,6 +8,7 @@ import LabeledInput from "../../../components/labeled-input/LabeledInput";
 import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledH3 } from "../../../components/common/text";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -17,12 +18,21 @@ const SignInPage = () => {
   const httpRequestService = useHttpRequestService();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { login } = useAuth();
 
-  const handleSubmit = () => {
-    httpRequestService
-      .signIn({ email, password })
-      .then(() => navigate("/"))
-      .catch(() => setError(true));
+  const handleSubmit = async () => {
+    try {
+      const success = await httpRequestService.signIn({ email, password });
+      if (success) {
+        const token = localStorage.getItem("token");
+        if (token) {
+          await login(token);
+        }
+        navigate("/");
+      }
+    } catch (error) {
+      setError(true);
+    }
   };
 
   return (
