@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
-import { setLength, updateFeed } from "../redux/user";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { Post } from "../service";
 
 interface UseGetCommentsProps {
@@ -15,9 +13,7 @@ export const useGetComments = ({
 }: UseGetCommentsProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const posts = useAppSelector((state) => state.user.feed);
-
-  const dispatch = useAppDispatch();
+  const [comments, setComments] = useState<Post[]>([]); // Use local state instead of global
 
   const service = useHttpRequestService();
 
@@ -33,8 +29,7 @@ export const useGetComments = ({
             (a: Post, b: Post) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           ); // Sort by newest first
-        dispatch(updateFeed(commentsOnly));
-        dispatch(setLength(commentsOnly.length));
+        setComments(commentsOnly); // Set local state instead of global Redux
         setLoading(false);
       });
     } catch (e) {
@@ -43,5 +38,5 @@ export const useGetComments = ({
     }
   }, [postId, refreshTrigger]); // Add refreshTrigger to dependency array
 
-  return { posts, loading, error };
+  return { posts: comments, loading, error }; // Return local comments instead of global posts
 };
