@@ -57,9 +57,10 @@ const CommentPage = () => {
   const handleSubmit = async () => {
     try {
       // Create the comment using the correct endpoint
+      const imageUrls = images.map((image) => URL.createObjectURL(image));
       const commentData = {
         content: content,
-        images: images,
+        images: imageUrls,
       };
 
       await service.createComment(postId, commentData);

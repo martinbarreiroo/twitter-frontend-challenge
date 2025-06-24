@@ -43,25 +43,62 @@ const TweetBox = (props) => {
             setContent("");
             setImages([]);
             setImagesPreview([]);
-            const postData = {
-                content: content,
-                images: images.map((image) => ({
-                    fileExtension: image,
-                    type: image.type
-                })),
-            }
             
             let result;
             if (parentId) {
-                // This is a comment, use the comment endpoint
-                const commentData = {content: postData.content};
+                // This is a comment - handle image uploads for comments
+                let imageKeys = [];
+                
+                if (images && images.length > 0) {
+                    const imageRequests = images.map((file) => {
+                        return {
+                            fileExtension: file.name ? file.name.split('.').pop() : 'jpg',
+                            contentType: file.type || 'image/jpeg'
+                        };
+                    });
+
+                    const uploadUrlResponse = await httpService.getImageUploadUrls('comment/images/upload-urls', { images: imageRequests });
+
+                    if (uploadUrlResponse && uploadUrlResponse.uploads) {
+                        // Upload each image to S3 using presigned URLs
+                        for (let i = 0; i < images.length; i++) {
+                            const file = images[i];
+                            const uploadInfo = uploadUrlResponse.uploads[i];
+
+                            if (!uploadInfo || !uploadInfo.uploadUrl || !uploadInfo.imageKey) {
+                                throw new Error(`Invalid upload data for image ${i + 1}`);
+                            }
+
+                            const { uploadUrl, imageKey } = uploadInfo;
+
+                            const uploadResponse = await fetch(uploadUrl, {
+                                method: 'PUT',
+                                body: file,
+                            });
+
+                            if (!uploadResponse.ok) {
+                                throw new Error(`Failed to upload image ${i + 1}`);
+                            }
+
+                            imageKeys.push(imageKey);
+                        }
+                    }
+                }
+                
+                // Create comment with images
+                const commentData = {
+                    content: content,
+                    images: imageKeys
+                };
                 result = await httpService.createComment(parentId, commentData);
             } else {
-                // This is a regular post, use the post endpoint
-                result = await httpService.createPost({
-                    ...postData,
+                // This is a regular post, use the existing post creation logic
+                const postData = {
+                    content: content,
+                    images: images, // Pass File objects for posts
                     parentId: parentId
-                });
+                };
+                result = await httpService.createPost(postData);
             }
             
             // If this is a comment (has parentId), call the callback instead of updating global feed
