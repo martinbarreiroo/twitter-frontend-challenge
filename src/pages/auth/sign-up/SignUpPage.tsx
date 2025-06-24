@@ -9,6 +9,7 @@ import LabeledInput from "../../../components/labeled-input/LabeledInput";
 import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledH3 } from "../../../components/common/text";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface SignUpData {
   name: string;
@@ -24,17 +25,27 @@ const SignUpPage = () => {
   const httpRequestService = useHttpRequestService();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { login } = useAuth();
 
   const handleChange =
     (prop: string) => (event: ChangeEvent<HTMLInputElement>) => {
       setData({ ...data, [prop]: event.target.value });
     };
+
   const handleSubmit = async () => {
     const { confirmPassword, ...requestData } = data;
-    httpRequestService
-      .signUp(requestData)
-      .then(() => navigate("/"))
-      .catch(() => setError(false));
+    try {
+      const success = await httpRequestService.signUp(requestData);
+      if (success) {
+        const token = localStorage.getItem("token");
+        if (token) {
+          await login(token);
+        }
+        navigate("/");
+      }
+    } catch (error) {
+      setError(true);
+    }
   };
 
   return (

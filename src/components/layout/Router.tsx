@@ -10,24 +10,36 @@ import ProfilePage from "../../pages/profile/ProfilePage";
 import TweetPage from "../../pages/create-tweet-page/TweetPage";
 import CommentPage from "../../pages/create-comment-page/CommentPage";
 import PostPage from "../../pages/post-page/PostPage";
+import ProtectedRoute from "../protected-route/ProtectedRoute";
+import PublicRoute from "../public-route/PublicRoute";
 
 const WithNav = () => {
   return (
-    <StyledSideBarPageWrapper>
-      <NavBar />
-      <Outlet />
-    </StyledSideBarPageWrapper>
+    <ProtectedRoute>
+      <StyledSideBarPageWrapper>
+        <NavBar />
+        <Outlet />
+      </StyledSideBarPageWrapper>
+    </ProtectedRoute>
   );
 };
 
 export const ROUTER = createBrowserRouter([
   {
     path: "/sign-up",
-    element: <SignUpPage />,
+    element: (
+      <PublicRoute>
+        <SignUpPage />
+      </PublicRoute>
+    ),
   },
   {
     path: "/sign-in",
-    element: <SignInPage />,
+    element: (
+      <PublicRoute>
+        <SignInPage />
+      </PublicRoute>
+    ),
   },
   {
     element: <WithNav />,
@@ -55,6 +67,10 @@ export const ROUTER = createBrowserRouter([
       {
         path: "/compose/comment/:id",
         element: <CommentPage />,
+      },
+      {
+        path: "*",
+        element: <HomePage />,
       },
     ],
   },
