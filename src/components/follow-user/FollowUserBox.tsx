@@ -22,11 +22,9 @@ const FollowUserBox = ({
 }: FollowUserBoxProps) => {
   const { t } = useTranslation();
   const service = useHttpRequestService();
-  const [user, setUser] = useState<User>();
 
   useEffect(() => {
     handleGetUser().then((r) => {
-      setUser(r);
       setIsFollowing(r?.followed?.some((f: Author) => f.id === id) || false);
     });
   }, []);

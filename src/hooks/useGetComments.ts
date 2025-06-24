@@ -3,7 +3,7 @@ import { useHttpRequestService } from "../service/HttpRequestService";
 import { Post } from "../service";
 
 interface UseGetCommentsProps {
-  postId: string;
+  postId: string | undefined;
   refreshTrigger?: number;
 }
 
