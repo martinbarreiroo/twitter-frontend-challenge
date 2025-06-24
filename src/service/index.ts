@@ -19,7 +19,7 @@ export interface PostData {
 
 export interface CommentData {
   content: string;
-  images?: File[];
+  images?: string[];
 }
 
 export interface Post {

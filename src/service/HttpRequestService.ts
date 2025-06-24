@@ -116,6 +116,16 @@ const httpRequestService = {
     });
     return res.status === 201 ? res.data : null;
   },
+  getImageUploadUrls: async (endpoint: string, data: any) => {
+    const res = await axios.post(`${url}/${endpoint}`, data, {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
+    });
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
 
   getPaginatedPosts: async (limit: number, after: string, query: string) => {
     const res = await axios.get(`${url}/post`, {
