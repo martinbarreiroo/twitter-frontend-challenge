@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { User } from "../service";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../hooks/query-keys";
 
 interface AuthContextType {
   user: User | null;
@@ -36,6 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const service = useHttpRequestService();
+  const queryClient = useQueryClient();
 
   const checkAuthStatus = async () => {
     try {
@@ -49,19 +52,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const loggedIn = await service.isLogged();
       if (loggedIn) {
-        const userData = await service.me();
+        // Use React Query to fetch and cache user data
+        const userData = await queryClient.fetchQuery({
+          queryKey: queryKeys.user,
+          queryFn: () => service.me(),
+        });
         setUser(userData);
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
         setUser(null);
         localStorage.removeItem("token");
+        // Clear React Query cache when not authenticated
+        queryClient.removeQueries({ queryKey: queryKeys.user });
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem("token");
+      // Clear React Query cache on error
+      queryClient.removeQueries({ queryKey: queryKeys.user });
     } finally {
       setIsLoading(false);
     }
@@ -76,12 +87,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
+    // Clear all React Query cache on logout
+    queryClient.clear();
   };
 
   const refreshUser = async () => {
     if (isAuthenticated) {
       try {
-        const userData = await service.me();
+        // Use React Query to fetch fresh user data and update cache
+        const userData = await queryClient.fetchQuery({
+          queryKey: queryKeys.user,
+          queryFn: () => service.me(),
+        });
         setUser(userData);
       } catch (error) {
         console.error("Failed to refresh user data:", error);

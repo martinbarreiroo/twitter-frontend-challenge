@@ -5,9 +5,12 @@ import { queryKeys } from "./query-keys";
 // User
 export const useCurrentUser = () => {
   const service = useHttpRequestService();
+  const token = localStorage.getItem("token");
+
   return useQuery({
     queryKey: queryKeys.user,
     queryFn: () => service.me(),
+    enabled: !!token, // Only fetch when there's a token
   });
 };
 
