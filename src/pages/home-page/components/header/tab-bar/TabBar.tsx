@@ -1,24 +1,32 @@
-import React, { useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import Tab from "./tab/Tab";
-import { setQuery, updateFeed } from "../../../../../redux/user";
-import { useHttpRequestService } from "../../../../../service/HttpRequestService";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch } from "../../../../../redux/hooks";
 import { StyledTabBarContainer } from "./TabBarContainer";
 
-const TabBar = () => {
-  const [activeFirstPage, setActiveFirstPage] = useState(true);
-  const dispatch = useAppDispatch();
-  const service = useHttpRequestService();
-  const { t } = useTranslation();
+// Create a context for the feed query
+export const FeedQueryContext = createContext<{
+  query: string;
+  setQuery: (query: string) => void;
+}>({
+  query: "",
+  setQuery: () => {},
+});
 
-  const handleClick = async (value: boolean, query: string) => {
+export const useFeedQuery = () => useContext(FeedQueryContext);
+
+interface TabBarProps {
+  onQueryChange?: (query: string) => void;
+}
+
+const TabBar: React.FC<TabBarProps> = ({ onQueryChange }) => {
+  const [activeFirstPage, setActiveFirstPage] = useState(true);
+  const { t } = useTranslation();
+  const { setQuery } = useFeedQuery();
+
+  const handleClick = (value: boolean, queryValue: string) => {
     setActiveFirstPage(value);
-    dispatch(setQuery(query));
-    const data = await service.getPosts(query).catch((e) => {
-      console.log(e);
-    });
-    dispatch(updateFeed(data));
+    setQuery(queryValue);
+    onQueryChange?.(queryValue);
   };
 
   return (

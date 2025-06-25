@@ -1,16 +1,14 @@
 import React from "react";
 import Feed from "./Feed";
-import { useGetComments } from "../../hooks/useGetComments";
+import { useComments } from "../../hooks";
 
 interface CommentFeedProps {
   postId: string | undefined;
   refreshTrigger?: number;
 }
+
 const CommentFeed = ({ postId, refreshTrigger }: CommentFeedProps) => {
-  const { posts, loading } = useGetComments({
-    postId,
-    refreshTrigger,
-  });
+  const { data: posts = [], isLoading: loading } = useComments(postId || "");
 
   return (
     <>

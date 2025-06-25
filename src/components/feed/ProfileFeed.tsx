@@ -1,9 +1,11 @@
 import React from "react";
 import Feed from "./Feed";
-import { useGetProfilePosts } from "../../hooks/useGetProfilePosts";
+import { useProfilePosts } from "../../hooks";
+import { useParams } from "react-router-dom";
 
 const ProfileFeed = () => {
-  const { posts, loading } = useGetProfilePosts();
+  const { id } = useParams<{ id: string }>();
+  const { data: posts = [], isLoading: loading } = useProfilePosts(id || "");
 
   return (
     <>

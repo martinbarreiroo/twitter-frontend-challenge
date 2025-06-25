@@ -1,9 +1,16 @@
 import React from "react";
 import Feed from "./Feed";
-import { useGetFeed } from "../../hooks/useGetFeed";
+import { usePosts } from "../../hooks";
+import { useFeedQuery } from "../../pages/home-page/components/header/tab-bar/TabBar";
 
-const ContentFeed = () => {
-  const { posts, loading } = useGetFeed();
+interface ContentFeedProps {
+  query?: string;
+}
+
+const ContentFeed: React.FC<ContentFeedProps> = ({ query: propQuery }) => {
+  const { query: contextQuery } = useFeedQuery();
+  const finalQuery = propQuery ?? contextQuery;
+  const { data: posts = [], isLoading: loading } = usePosts(finalQuery);
 
   return <Feed posts={posts} loading={loading} />;
 };

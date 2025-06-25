@@ -1,31 +1,27 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useState, useEffect } from "react";
 import SearchResultModal from "./search-result-modal/SearchResultModal";
-import { Author } from "../../service";
-import { useHttpRequestService } from "../../service/HttpRequestService";
+import { useSearchUsers } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { StyledSearchBarContainer } from "./SearchBarContainer";
 import { StyledSearchBarInput } from "./SearchBarInput";
 
 export const SearchBar = () => {
-  const [results, setResults] = useState<Author[]>([]);
   const [query, setQuery] = useState<string>("");
-  const service = useHttpRequestService();
-  let debounceTimer: NodeJS.Timeout;
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
+  const { data: results = [] } = useSearchUsers(debouncedQuery, 4, 0);
   const { t } = useTranslation();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const inputQuery = e.target.value;
-
-    setQuery(inputQuery);
-
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(async () => {
-      try {
-        setResults(await service.searchUsers(inputQuery, 4, 0));
-      } catch (error) {
-        console.log(error);
-      }
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
     }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
   };
 
   return (
