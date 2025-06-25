@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { BackArrowIcon } from "../../components/icon/Icon";
 import Button from "../../components/button/Button";
-import { Post, User } from "../../service";
+import { Post } from "../../service";
 import AuthorData from "../../components/tweet/user-post-data/AuthorData";
 import ImageContainer from "../../components/tweet/tweet-image/ImageContainer";
 import { useParams } from "react-router-dom";
 import { useHttpRequestService } from "../../service/HttpRequestService";
+import { useCurrentUser, usePost } from "../../hooks";
 import TweetInput from "../../components/tweet-input/TweetInput";
 import ImageInput from "../../components/common/ImageInput";
 import { useTranslation } from "react-i18next";
@@ -16,37 +17,18 @@ import { StyledP } from "../../components/common/text";
 
 const CommentPage = () => {
   const [content, setContent] = useState("");
-  const [post, setPost] = useState<Post | undefined>(undefined);
   const [images, setImages] = useState<File[]>([]);
-  const [user, setUser] = useState<User>();
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]);
   const { id: postId } = useParams<{ id: string }>();
+
+  const { data: user } = useCurrentUser();
+  const { data: post } = usePost(postId || "");
   const service = useHttpRequestService();
   const { t } = useTranslation();
 
   useEffect(() => {
-    handleGetUser().then((r) => setUser(r));
-  }, []);
-
-  const handleGetUser = async () => {
-    return await service.me();
-  };
-
-  useEffect(() => {
     window.innerWidth > 600 && exit();
   }, []);
-
-  useEffect(() => {
-    if (!postId) return;
-
-    service
-      .getPostById(postId)
-      .then((res) => {
-        setPost(res);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, [postId]);
 
   const exit = () => {
     window.history.back();
