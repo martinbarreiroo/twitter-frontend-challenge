@@ -5,6 +5,7 @@ import { ButtonType } from "../button/StyledButton";
 import { StyledModalContainer } from "./ModalContainer";
 import { StyledContainer } from "../common/Container";
 import { StyledH5, StyledP } from "../common/text";
+import { useClickOutside } from "../../hooks";
 
 interface ModalProps {
   show: boolean;
@@ -23,11 +24,17 @@ const Modal = ({
   img,
   title,
 }: ModalProps) => {
+  // Use click outside hook to close modal when clicking on the blurred background
+  const modalRef = useClickOutside<HTMLDivElement>(onClose);
+
   return (
     <>
       {show && (
-        <StyledBlurredBackground>
-          <StyledModalContainer>
+        <StyledBlurredBackground onClick={onClose}>
+          <StyledModalContainer
+            ref={modalRef}
+            onClick={(e) => e.stopPropagation()}
+          >
             <StyledContainer alignItems={"center"} justifyContent={"center"}>
               {img && (
                 <img src={img} alt={"modal"} width={"32px"} height={"26px"} />

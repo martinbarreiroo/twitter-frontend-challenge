@@ -4,12 +4,21 @@ import { useSearchUsers } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { StyledSearchBarContainer } from "./SearchBarContainer";
 import { StyledSearchBarInput } from "./SearchBarInput";
+import { useClickOutside } from "../../hooks";
 
 export const SearchBar = () => {
   const [query, setQuery] = useState<string>("");
   const [debouncedQuery, setDebouncedQuery] = useState<string>("");
   const { data: results = [] } = useSearchUsers(debouncedQuery, 4, 0);
   const { t } = useTranslation();
+
+  // Use click outside hook to close the search results
+  const searchRef = useClickOutside<HTMLDivElement>(() => {
+    if (query.length > 0) {
+      setQuery("");
+      setDebouncedQuery("");
+    }
+  });
 
   // Debounce search query
   useEffect(() => {
@@ -25,7 +34,7 @@ export const SearchBar = () => {
   };
 
   return (
-    <StyledSearchBarContainer>
+    <StyledSearchBarContainer ref={searchRef}>
       <StyledSearchBarInput
         onChange={handleChange}
         value={query}

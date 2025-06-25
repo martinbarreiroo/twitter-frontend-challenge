@@ -8,6 +8,7 @@ import icon from "../../assets/icon.jpg";
 import { StyledP } from "../common/text";
 import { StyledContainer } from "../common/Container";
 import { useAuth } from "../../contexts/AuthContext";
+import { useClickOutside } from "../../hooks";
 
 interface ProfileLogoutPromptProps {
   margin: string;
@@ -21,6 +22,13 @@ const ProfileLogoutPrompt = ({
   const [logoutOpen, setLogoutOpen] = useState(false);
   const { user } = useAuth();
 
+  // Use click outside hook to close the logout menu
+  const logoutRef = useClickOutside<HTMLDivElement>(() => {
+    if (logoutOpen) {
+      setLogoutOpen(false);
+    }
+  });
+
   const handleLogout = () => {
     setLogoutOpen(!logoutOpen);
   };
@@ -31,6 +39,7 @@ const ProfileLogoutPrompt = ({
 
   return (
     <StyledContainer
+      ref={logoutRef}
       maxHeight={"48px"}
       flexDirection={"row"}
       className={"profile-info"}

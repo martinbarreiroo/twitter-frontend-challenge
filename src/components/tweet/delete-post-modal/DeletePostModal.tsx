@@ -6,6 +6,7 @@ import { useDeletePost } from "../../../hooks";
 import { useTranslation } from "react-i18next";
 import { ButtonType } from "../../button/StyledButton";
 import { StyledDeletePostModalContainer } from "./DeletePostModalContainer";
+import { useClickOutside } from "../../../hooks";
 
 interface DeletePostModalProps {
   show: boolean;
@@ -21,6 +22,13 @@ export const DeletePostModal = ({
   const [showModal, setShowModal] = useState<boolean>(false);
   const deletePostMutation = useDeletePost();
   const { t } = useTranslation();
+
+  // Use click outside hook to close the dropdown menu
+  const dropdownRef = useClickOutside<HTMLDivElement>(() => {
+    if (show && !showModal) {
+      onClose();
+    }
+  });
 
   const handleDelete = async () => {
     try {
@@ -40,7 +48,10 @@ export const DeletePostModal = ({
     <>
       {show && (
         <>
-          <StyledDeletePostModalContainer onClick={() => setShowModal(true)}>
+          <StyledDeletePostModalContainer
+            ref={dropdownRef}
+            onClick={() => setShowModal(true)}
+          >
             <DeleteIcon />
             <p>{t("buttons.delete")}</p>
           </StyledDeletePostModalContainer>
