@@ -6,7 +6,7 @@ import { StyledSuggestionBoxContainer } from "./SuggestionBoxContainer";
 import { User } from "../../../../service";
 
 const SuggestionBox = () => {
-  const { data: users = [], isLoading } = useRecommendations(6, 0);
+  const { data: users = [] } = useRecommendations(6, 0);
   const { t } = useTranslation();
 
   return (

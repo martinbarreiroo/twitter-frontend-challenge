@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BackArrowIcon } from "../../components/icon/Icon";
 import Button from "../../components/button/Button";
-import { Post } from "../../service";
 import AuthorData from "../../components/tweet/user-post-data/AuthorData";
 import ImageContainer from "../../components/tweet/tweet-image/ImageContainer";
 import { useParams } from "react-router-dom";
@@ -18,7 +17,6 @@ import { StyledP } from "../../components/common/text";
 const CommentPage = () => {
   const [content, setContent] = useState("");
   const [images, setImages] = useState<File[]>([]);
-  const [imagesPreview, setImagesPreview] = useState<string[]>([]);
   const { id: postId } = useParams<{ id: string }>();
 
   const { data: user } = useCurrentUser();
