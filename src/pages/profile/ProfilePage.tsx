@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ProfileInfo from "./ProfileInfo";
 import { useNavigate, useParams } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import { useTranslation } from "react-i18next";
-import { User } from "../../service";
 import { ButtonType } from "../../components/button/StyledButton";
+import {
+  useProfile,
+  useCurrentUser,
+  useFollowUser,
+  useUnfollowUser,
+} from "../../hooks";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import Button from "../../components/button/Button";
 import ProfileFeed from "../../components/feed/ProfileFeed";
@@ -12,8 +17,6 @@ import { StyledContainer } from "../../components/common/Container";
 import { StyledH5 } from "../../components/common/text";
 
 const ProfilePage = () => {
-  const [profile, setProfile] = useState<User | null>(null);
-  const [following, setFollowing] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalValues, setModalValues] = useState({
     text: "",
@@ -21,53 +24,51 @@ const ProfilePage = () => {
     type: ButtonType.DEFAULT,
     buttonText: "",
   });
-  const service = useHttpRequestService();
-  const [user, setUser] = useState<User>();
 
-  const id = useParams().id;
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
   const { t } = useTranslation();
+  const service = useHttpRequestService();
 
-  useEffect(() => {
-    handleGetUser().then((r) => setUser(r));
-  }, []);
+  const { data: profile, isLoading: profileLoading } = useProfile(id || "");
+  const { data: user } = useCurrentUser();
+  const followUserMutation = useFollowUser();
+  const unfollowUserMutation = useUnfollowUser();
 
-  const handleGetUser = async () => {
-    return await service.me();
-  };
+  if (!id) return null;
+
+  const isOwnProfile = profile?.id === user?.id;
+  const isFollowing = user?.followed?.some((f: any) => f.id === id) || false;
 
   const handleButtonType = (): { component: ButtonType; text: string } => {
-    if (profile?.id === user?.id)
+    if (isOwnProfile)
       return { component: ButtonType.DELETE, text: t("buttons.delete") };
-    if (following)
+    if (isFollowing)
       return { component: ButtonType.OUTLINED, text: t("buttons.unfollow") };
     else return { component: ButtonType.FOLLOW, text: t("buttons.follow") };
   };
 
-  const handleSubmit = () => {
-    if (profile?.id === user?.id) {
-      service.deleteProfile().then(() => {
+  const handleSubmit = async () => {
+    if (isOwnProfile) {
+      try {
+        await service.deleteProfile();
         localStorage.removeItem("token");
         navigate("/sign-in");
-      });
+      } catch (error) {
+        console.error("Error deleting profile:", error);
+      }
     } else {
-      service.unfollowUser(profile!.id).then(async () => {
-        setFollowing(false);
+      try {
+        await unfollowUserMutation.mutateAsync(profile!.id);
         setShowModal(false);
-        await getProfileData();
-      });
+      } catch (error) {
+        console.error("Error unfollowing user:", error);
+      }
     }
   };
 
-  useEffect(() => {
-    getProfileData().then();
-  }, [id]);
-
-  if (!id) return null;
-
   const handleButtonAction = async () => {
-    if (profile?.id === user?.id) {
+    if (isOwnProfile) {
       setShowModal(true);
       setModalValues({
         title: t("modal-title.delete-account"),
@@ -76,7 +77,7 @@ const ProfilePage = () => {
         buttonText: t("buttons.delete"),
       });
     } else {
-      if (following) {
+      if (isFollowing) {
         setShowModal(true);
         setModalValues({
           text: t("modal-content.unfollow"),
@@ -85,46 +86,18 @@ const ProfilePage = () => {
           buttonText: t("buttons.unfollow"),
         });
       } else {
-        await service.followUser(id);
-        service.getProfileView(id).then((res) => setProfile(res));
+        try {
+          await followUserMutation.mutateAsync(id);
+        } catch (error) {
+          console.error("Error following user:", error);
+        }
       }
-      return await getProfileData();
     }
   };
 
-  const getProfileData = async () => {
-    /*
-    service
-        .getProfile(id)
-        .then((res) => {
-          setProfile(res);
-          // Handle both old format (array) and new format (boolean)
-          if (typeof res?.following === 'boolean') {
-            setFollowing(res.following);
-          } else {
-            // Fallback to old array-based approach
-            setFollowing(
-              res?.followers?.some((follower: User) => follower.id === user?.id) || false
-            );
-          }
-        })
-        .catch(() => {
-        */
-    service
-      .getProfileView(id)
-      .then((res) => {
-        setProfile(res);
-        // Handle both old format (array) and new format (boolean)
-        if (typeof res?.following === "boolean") {
-          setFollowing(res.following);
-        } else {
-          setFollowing(false);
-        }
-      })
-      .catch((error2) => {
-        console.log(error2);
-      });
-  };
+  if (profileLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -159,7 +132,7 @@ const ProfilePage = () => {
               </StyledContainer>
             </StyledContainer>
             <StyledContainer width={"100%"}>
-              {!profile.isPrivate || following || profile.id === user?.id ? (
+              {!profile.isPrivate || isFollowing || isOwnProfile ? (
                 <ProfileFeed />
               ) : (
                 <StyledH5>Private account</StyledH5>

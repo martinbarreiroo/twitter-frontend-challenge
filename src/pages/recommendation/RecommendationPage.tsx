@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useGetRecommendations } from "../../hooks/useGetRecommendations";
+import { useRecommendations } from "../../hooks";
 import {
   StyledContainer,
   StyledScrollableContainer,
@@ -10,7 +10,7 @@ import { StyledH5 } from "../../components/common/text";
 
 const RecommendationPage = () => {
   const [page, setPage] = useState(0);
-  const { users, loading } = useGetRecommendations({ page });
+  const { data: users = [], isLoading: loading } = useRecommendations(10, page);
   const { t } = useTranslation();
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -36,7 +36,7 @@ const RecommendationPage = () => {
         <StyledH5>{t("header.connect")}</StyledH5>
       </StyledContainer>
       <StyledScrollableContainer padding={"8px"} gap={"16px"}>
-        {users.map((user, index) => {
+        {users.map((user: any, index: number) => {
           if (users.length === index + 1) {
             return (
               <StyledContainer ref={lastRecommendation} key={"last-div"}>

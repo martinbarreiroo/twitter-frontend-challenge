@@ -229,7 +229,7 @@ const httpRequestService = {
   },
 
   getProfile: async (id: string) => {
-    const res = await api.get(`/user/profile/${id}`);
+    const res = await api.get(`/user/${id}`);
     if (res.status === 200) {
       return res.data;
     }

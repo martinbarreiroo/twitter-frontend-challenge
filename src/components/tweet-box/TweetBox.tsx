@@ -1,8 +1,8 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent } from "react";
 import Button from "../button/Button";
 import TweetInput from "../tweet-input/TweetInput";
 import { useHttpRequestService } from "../../service/HttpRequestService";
-import { setLength, updateFeed } from "../../redux/user";
+import { useCreatePost, useCreateComment, useCurrentUser } from "../../hooks";
 import ImageContainer from "../tweet/tweet-image/ImageContainer";
 import { BackArrowIcon } from "../icon/Icon";
 import ImageInput from "../common/ImageInput";
@@ -11,9 +11,6 @@ import { ButtonType } from "../button/StyledButton";
 import { StyledTweetBoxContainer } from "./TweetBoxContainer";
 import { StyledContainer } from "../common/Container";
 import { StyledButtonContainer } from "./ButtonContainer";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
-import { User, Post } from "../../service";
 
 interface TweetBoxProps {
   parentId?: string;
@@ -21,6 +18,18 @@ interface TweetBoxProps {
   mobile?: boolean;
   onCommentCreated?: () => void;
   borderless?: boolean;
+}
+
+interface ImageUploadRequest {
+  fileExtension: string;
+  contentType: string;
+}
+
+interface ImageUploadResponse {
+  uploads: Array<{
+    uploadUrl: string;
+    imageKey: string;
+  }>;
 }
 
 interface ImageUploadRequest {
@@ -45,21 +54,12 @@ const TweetBox: React.FC<TweetBoxProps> = ({
   const [content, setContent] = useState<string>("");
   const [images, setImages] = useState<File[]>([]);
   const [imagesPreview, setImagesPreview] = useState<string[]>([]);
-  const [user, setUser] = useState<User | undefined>(undefined);
 
-  const { length, query } = useSelector((state: RootState) => state.user);
+  const { data: user } = useCurrentUser();
+  const createPostMutation = useCreatePost();
+  const createCommentMutation = useCreateComment();
   const httpService = useHttpRequestService();
-  const dispatch = useDispatch();
   const { t } = useTranslation();
-  const service = useHttpRequestService();
-
-  useEffect(() => {
-    handleGetUser().then((r) => setUser(r));
-  }, []);
-
-  const handleGetUser = async (): Promise<User> => {
-    return await service.me();
-  };
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
     setContent(e.target.value);
@@ -67,24 +67,29 @@ const TweetBox: React.FC<TweetBoxProps> = ({
 
   const handleSubmit = async (): Promise<void> => {
     try {
+      const originalContent = content;
+      const originalImages = images;
+
+      // Reset form immediately for better UX
       setContent("");
       setImages([]);
       setImagesPreview([]);
 
-      let result: Post | undefined;
-
       if (parentId) {
+        // Handle comment creation
         let imageKeys: string[] = [];
 
-        if (images && images.length > 0) {
-          const imageRequests: ImageUploadRequest[] = images.map((file) => {
-            return {
-              fileExtension: file.name
-                ? file.name.split(".").pop() || "jpg"
-                : "jpg",
-              contentType: file.type || "image/jpeg",
-            };
-          });
+        if (originalImages && originalImages.length > 0) {
+          const imageRequests: ImageUploadRequest[] = originalImages.map(
+            (file) => {
+              return {
+                fileExtension: file.name
+                  ? file.name.split(".").pop() || "jpg"
+                  : "jpg",
+                contentType: file.type || "image/jpeg",
+              };
+            }
+          );
 
           const uploadUrlResponse: ImageUploadResponse =
             await httpService.getImageUploadUrls("comment/images/upload-urls", {
@@ -92,9 +97,8 @@ const TweetBox: React.FC<TweetBoxProps> = ({
             });
 
           if (uploadUrlResponse && uploadUrlResponse.uploads) {
-            // Upload each image to S3 using presigned URLs
-            for (let i = 0; i < images.length; i++) {
-              const file: File = images[i];
+            for (let i = 0; i < originalImages.length; i++) {
+              const file: File = originalImages[i];
               const uploadInfo = uploadUrlResponse.uploads[i];
 
               if (
@@ -122,25 +126,27 @@ const TweetBox: React.FC<TweetBoxProps> = ({
         }
 
         const commentData = {
-          content: content,
+          content: originalContent,
           images: imageKeys,
         };
-        result = await httpService.createComment(parentId, commentData);
+
+        await createCommentMutation.mutateAsync({
+          postId: parentId,
+          data: commentData,
+        });
+
+        if (onCommentCreated) {
+          onCommentCreated();
+        }
       } else {
+        // Handle post creation
         const postData = {
-          content: content,
-          images: images,
+          content: originalContent,
+          images: originalImages,
           parentId: parentId,
         };
-        result = await httpService.createPost(postData);
-      }
 
-      if (parentId && onCommentCreated) {
-        onCommentCreated();
-      } else {
-        dispatch(setLength(length + 1));
-        const posts: Post[] = await httpService.getPosts(query);
-        dispatch(updateFeed(posts));
+        await createPostMutation.mutateAsync(postData);
       }
 
       if (close) {
@@ -148,6 +154,8 @@ const TweetBox: React.FC<TweetBoxProps> = ({
       }
     } catch (e) {
       console.log(e);
+      // Restore form content if there was an error
+      // You might want to add proper error handling/toast notifications here
     }
   };
 

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { StyledTweetContainer } from "./TweetContainer";
 import AuthorData from "./user-post-data/AuthorData";
-import type { Post, User } from "../../service";
+import type { Post } from "../../service";
 import { StyledReactionsContainer } from "./ReactionsContainer";
 import Reaction from "./reaction/Reaction";
-import { useHttpRequestService } from "../../service/HttpRequestService";
+import {
+  useCurrentUser,
+  useCreateReaction,
+  useDeleteReaction,
+} from "../../hooks";
 import { IconType } from "../icon/Icon";
 import { StyledContainer } from "../common/Container";
 import ThreeDots from "../common/ThreeDots";
@@ -21,21 +25,14 @@ const Tweet = ({ post }: TweetProps) => {
   const [actualPost, setActualPost] = useState<Post>(post);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showCommentModal, setShowCommentModal] = useState<boolean>(false);
-  const service = useHttpRequestService();
+  const { data: user } = useCurrentUser();
+  const createReactionMutation = useCreateReaction();
+  const deleteReactionMutation = useDeleteReaction();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User>();
-
-  useEffect(() => {
-    handleGetUser().then((r) => setUser(r));
-  }, []);
 
   useEffect(() => {
     setActualPost(post);
   }, [post]);
-
-  const handleGetUser = async () => {
-    return await service.me();
-  };
 
   const getCountByType = (type: string): number => {
     switch (type) {
@@ -56,15 +53,17 @@ const Tweet = ({ post }: TweetProps) => {
 
       if (hasReacted) {
         // User has already reacted, so remove the specific reaction type
-        await service.deleteReactionByPost(actualPost.id, type.toLowerCase());
+        await deleteReactionMutation.mutateAsync({
+          postId: actualPost.id,
+          type: type.toLowerCase(),
+        });
       } else {
         // User hasn't reacted, so create new reaction
-        await service.createReaction(actualPost.id, type.toLowerCase());
+        await createReactionMutation.mutateAsync({
+          postId: actualPost.id,
+          reaction: type.toLowerCase(),
+        });
       }
-
-      // Refresh the post to get updated counts and reaction status
-      const newPost = await service.getPostById(post.id);
-      setActualPost(newPost);
     } catch (error) {
       console.error("Error handling reaction:", error);
     }

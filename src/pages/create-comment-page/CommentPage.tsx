@@ -4,7 +4,7 @@ import Button from "../../components/button/Button";
 import { Post, User } from "../../service";
 import AuthorData from "../../components/tweet/user-post-data/AuthorData";
 import ImageContainer from "../../components/tweet/tweet-image/ImageContainer";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import TweetInput from "../../components/tweet-input/TweetInput";
 import ImageInput from "../../components/common/ImageInput";
