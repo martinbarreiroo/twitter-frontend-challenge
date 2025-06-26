@@ -10,6 +10,7 @@ import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledH3 } from "../../../components/common/text";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToast } from "../../../contexts/ToastContext";
 
 interface SignUpData {
   name: string;
@@ -53,6 +54,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
 
   const initialValues: SignUpData = {
     name: "",
@@ -74,10 +76,14 @@ const SignUpPage = () => {
         if (token) {
           await login(token);
         }
+        showSuccess("Account created successfully! Welcome!");
         navigate("/");
       }
     } catch (error) {
       setStatus({ error: "Registration failed. Please try again." });
+      showError(
+        "Registration failed. Please check your information and try again."
+      );
     } finally {
       setSubmitting(false);
     }

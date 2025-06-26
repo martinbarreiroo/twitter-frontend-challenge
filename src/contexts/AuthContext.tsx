@@ -9,6 +9,7 @@ import { useHttpRequestService } from "../service/HttpRequestService";
 import { User } from "../service";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../hooks/query-keys";
+import { useToast } from "./ToastContext";
 
 interface AuthContextType {
   user: User | null;
@@ -39,6 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
 
   const checkAuthStatus = async () => {
     try {
@@ -73,6 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem("token");
       // Clear React Query cache on error
       queryClient.removeQueries({ queryKey: queryKeys.user });
+      showError("Authentication failed. Please login again.");
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (token: string) => {
     localStorage.setItem("token", token);
     await checkAuthStatus();
+    showSuccess("Successfully logged in!");
   };
 
   const logout = () => {
@@ -89,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(false);
     // Clear all React Query cache on logout
     queryClient.clear();
+    showSuccess("Successfully logged out!");
   };
 
   const refreshUser = async () => {
@@ -102,6 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
       } catch (error) {
         console.error("Failed to refresh user data:", error);
+        showError("Failed to refresh user data");
       }
     }
   };

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { PostData, CommentData } from "../service";
 import { queryKeys } from "./query-keys";
+import { useToast } from "../contexts/ToastContext";
 
 // Posts
 export const usePosts = (query = "") => {
@@ -24,12 +25,17 @@ export const usePost = (postId: string) => {
 export const useCreatePost = () => {
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
 
   return useMutation({
     mutationFn: (data: PostData) => service.createPost(data),
     onSuccess: () => {
       // Invalidate posts queries to refetch them
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
+      showSuccess("Your tweet was posted successfully!");
+    },
+    onError: (error: any) => {
+      showError("Failed to post tweet. Please try again.");
     },
   });
 };
@@ -37,12 +43,17 @@ export const useCreatePost = () => {
 export const useDeletePost = () => {
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
 
   return useMutation({
     mutationFn: (postId: string) => service.deletePost(postId),
     onSuccess: () => {
       // Invalidate posts queries to refetch them
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
+      showSuccess("Tweet deleted successfully!");
+    },
+    onError: (error: any) => {
+      showError("Failed to delete tweet. Please try again.");
     },
   });
 };
@@ -60,6 +71,7 @@ export const useComments = (postId: string) => {
 export const useCreateComment = () => {
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
 
   return useMutation({
     mutationFn: ({ postId, data }: { postId: string; data: CommentData }) =>
@@ -71,6 +83,10 @@ export const useCreateComment = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
       // Invalidate posts list to update comment counts there too
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
+      showSuccess("Comment posted successfully!");
+    },
+    onError: (error: any) => {
+      showError("Failed to post comment. Please try again.");
     },
   });
 };

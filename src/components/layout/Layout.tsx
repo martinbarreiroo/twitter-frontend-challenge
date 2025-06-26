@@ -13,6 +13,7 @@ import { queryClient } from "../../lib/react-query";
 import { LightTheme } from "../../util/LightTheme";
 import { ROUTER } from "./Router";
 import { AuthProvider } from "../../contexts/AuthContext";
+import { ToastProvider } from "../../contexts/ToastContext";
 
 i18next.use(initReactI18next).init({
   interpolation: { escapeValue: false },
@@ -34,9 +35,11 @@ export const Layout = () => {
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={LightTheme}>
-            <AuthProvider>
-              <RouterProvider router={ROUTER} />
-            </AuthProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <RouterProvider router={ROUTER} />
+              </AuthProvider>
+            </ToastProvider>
           </ThemeProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
