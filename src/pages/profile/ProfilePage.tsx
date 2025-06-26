@@ -38,7 +38,7 @@ const ProfilePage = () => {
   if (!id) return null;
 
   const isOwnProfile = profile?.id === user?.id;
-  const isFollowing = user?.followed?.some((f: any) => f.id === id) || false;
+  const isFollowing = profile?.following || false;
 
   const handleButtonType = (): { component: ButtonType; text: string } => {
     if (isOwnProfile)

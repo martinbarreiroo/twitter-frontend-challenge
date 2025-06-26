@@ -16,24 +16,56 @@ export const StyledButton = styled.button<ButtonProps>`
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 16px;
+    padding: ${(props) => {
+      switch (props.size) {
+        case "SMALL":
+          return "6px 12px";
+        case "MEDIUM":
+          return "8px 16px";
+        case "LARGE":
+          return "10px 20px";
+        default:
+          return "8px 16px";
+      }
+    }};
     gap: 8px;
     margin-bottom: 8px;
     width: ${(props) => {
       switch (props.size) {
         case "SMALL":
-          return "120px";
+          return "auto";
         case "MEDIUM":
-          return "337px";
+          return "auto";
         case "LARGE":
-          return "400px";
+          return "auto";
         default:
           return props.size; // For custom pixel values like "180px"
       }
     }};
-    height: 33px;
-    left: 16px;
-    top: 16px;
+    min-width: ${(props) => {
+      switch (props.size) {
+        case "SMALL":
+          return "80px";
+        case "MEDIUM":
+          return "120px";
+        case "LARGE":
+          return "160px";
+        default:
+          return "auto";
+      }
+    }};
+    height: ${(props) => {
+      switch (props.size) {
+        case "SMALL":
+          return "32px";
+        case "MEDIUM":
+          return "40px";
+        case "LARGE":
+          return "48px";
+        default:
+          return "40px";
+      }
+    }};
 
     background: ${(props) => {
       switch (props.buttonType) {
