@@ -18,8 +18,7 @@ export const StyledInputContainer = styled.div`
     width: 337px;
 
     &.active-div {
-      width: 415px;
-      //transform: translateX(39px); /* Adjust the value based on the width difference */
+      border: 1px solid ${(props) => props.theme.colors.main};
     }
   }
 `;

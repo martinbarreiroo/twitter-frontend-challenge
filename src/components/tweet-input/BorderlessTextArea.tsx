@@ -23,6 +23,10 @@ export const StyledBorderlessTextArea = styled.textarea`
   resize: none;
   /* Adjust the height based on the number of rows */
   height: 100px;
+
+  &.error {
+    color: ${(props) => props.theme.colors.error};
+  }
 `;
 
 export default StyledBorderlessTextArea;
