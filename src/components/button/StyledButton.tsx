@@ -19,7 +19,18 @@ export const StyledButton = styled.button<ButtonProps>`
     padding: 8px 16px;
     gap: 8px;
     margin-bottom: 8px;
-    width: ${(props) => props.size};
+    width: ${(props) => {
+      switch (props.size) {
+        case "SMALL":
+          return "120px";
+        case "MEDIUM":
+          return "337px";
+        case "LARGE":
+          return "400px";
+        default:
+          return props.size; // For custom pixel values like "180px"
+      }
+    }};
     height: 33px;
     left: 16px;
     top: 16px;

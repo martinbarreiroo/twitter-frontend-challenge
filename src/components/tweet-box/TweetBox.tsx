@@ -1,6 +1,8 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState } from "react";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
 import Button from "../button/Button";
-import TweetInput from "../tweet-input/TweetInput";
+import FormikTweetInput from "../tweet-input/FormikTweetInput";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import { useCreatePost, useCreateComment, useCurrentUser } from "../../hooks";
 import ImageContainer from "../tweet/tweet-image/ImageContainer";
@@ -44,6 +46,17 @@ interface ImageUploadResponse {
   }>;
 }
 
+interface TweetFormValues {
+  content: string;
+}
+
+// Validation schema for tweet content
+const tweetValidationSchema = Yup.object({
+  content: Yup.string()
+    .max(240, "Tweet cannot exceed 240 characters")
+    .required("Tweet content is required"),
+});
+
 const TweetBox: React.FC<TweetBoxProps> = ({
   parentId,
   close,
@@ -51,7 +64,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({
   onCommentCreated,
   borderless,
 }) => {
-  const [content, setContent] = useState<string>("");
   const [images, setImages] = useState<File[]>([]);
   const [imagesPreview, setImagesPreview] = useState<string[]>([]);
 
@@ -61,17 +73,20 @@ const TweetBox: React.FC<TweetBoxProps> = ({
   const httpService = useHttpRequestService();
   const { t } = useTranslation();
 
-  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
-    setContent(e.target.value);
+  const initialValues: TweetFormValues = {
+    content: "",
   };
 
-  const handleSubmit = async (): Promise<void> => {
+  const handleSubmit = async (
+    values: TweetFormValues,
+    { resetForm, setSubmitting }: any
+  ) => {
     try {
-      const originalContent = content;
+      const originalContent = values.content;
       const originalImages = images;
 
       // Reset form immediately for better UX
-      setContent("");
+      resetForm();
       setImages([]);
       setImagesPreview([]);
 
@@ -154,8 +169,9 @@ const TweetBox: React.FC<TweetBoxProps> = ({
       }
     } catch (e) {
       console.log(e);
-      // Restore form content if there was an error
       // You might want to add proper error handling/toast notifications here
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -173,57 +189,82 @@ const TweetBox: React.FC<TweetBoxProps> = ({
   };
 
   return (
-    <StyledTweetBoxContainer>
-      {mobile && (
-        <StyledContainer
-          flexDirection={"row"}
-          justifyContent={"space-between"}
-          alignItems={"center"}
+    <Formik
+      initialValues={initialValues}
+      validationSchema={tweetValidationSchema}
+      onSubmit={handleSubmit}
+    >
+      {({
+        values,
+        errors,
+        touched,
+        handleChange,
+        handleBlur,
+        isSubmitting,
+        submitForm,
+      }) => (
+        <Form
+          style={{ width: "100%", display: "flex", flexDirection: "column" }}
         >
-          <BackArrowIcon onClick={close} />
-          <Button
-            text={"Tweet"}
-            buttonType={ButtonType.DEFAULT}
-            size={"SMALL"}
-            onClick={handleSubmit}
-            disabled={content.length === 0}
-          />
-        </StyledContainer>
+          <StyledTweetBoxContainer>
+            {mobile && (
+              <StyledContainer
+                flexDirection={"row"}
+                justifyContent={"space-between"}
+                alignItems={"center"}
+              >
+                <BackArrowIcon onClick={close} />
+                <Button
+                  text={"Tweet"}
+                  buttonType={ButtonType.DEFAULT}
+                  size={"SMALL"}
+                  onClick={submitForm}
+                  disabled={isSubmitting || values.content.length === 0}
+                />
+              </StyledContainer>
+            )}
+            <StyledContainer style={{ width: "100%" }}>
+              <FormikTweetInput
+                onChange={handleChange}
+                onBlur={handleBlur}
+                maxLength={240}
+                placeholder={t("placeholder.tweet")}
+                name="content"
+                value={values.content}
+                error={errors.content}
+                touched={touched.content}
+                src={user?.profilePicture}
+              />
+              <StyledContainer style={{ padding: "16px", marginTop: "32px" }}>
+                <ImageContainer
+                  editable
+                  images={imagesPreview}
+                  removeFunction={handleRemoveImage}
+                />
+              </StyledContainer>
+              <StyledButtonContainer>
+                <ImageInput setImages={handleAddImage} parentId={parentId} />
+                {!mobile && (
+                  <Button
+                    text={"Tweet"}
+                    buttonType={ButtonType.DEFAULT}
+                    size={"SMALL"}
+                    onClick={submitForm}
+                    disabled={
+                      isSubmitting ||
+                      values.content.length <= 0 ||
+                      values.content.length > 240 ||
+                      images.length > 4 ||
+                      images.length < 0
+                    }
+                  />
+                )}
+              </StyledButtonContainer>
+            </StyledContainer>
+          </StyledTweetBoxContainer>
+        </Form>
       )}
-      <StyledContainer style={{ width: "100%" }}>
-        <TweetInput
-          onChange={handleChange}
-          maxLength={240}
-          placeholder={t("placeholder.tweet")}
-          value={content}
-          src={user?.profilePicture}
-        />
-        <StyledContainer padding={"0 0 0 10%"}>
-          <ImageContainer
-            editable
-            images={imagesPreview}
-            removeFunction={handleRemoveImage}
-          />
-        </StyledContainer>
-        <StyledButtonContainer>
-          <ImageInput setImages={handleAddImage} parentId={parentId} />
-          {!mobile && (
-            <Button
-              text={"Tweet"}
-              buttonType={ButtonType.DEFAULT}
-              size={"SMALL"}
-              onClick={handleSubmit}
-              disabled={
-                content.length <= 0 ||
-                content.length > 240 ||
-                images.length > 4 ||
-                images.length < 0
-              }
-            />
-          )}
-        </StyledButtonContainer>
-      </StyledContainer>
-    </StyledTweetBoxContainer>
+    </Formik>
   );
 };
 
