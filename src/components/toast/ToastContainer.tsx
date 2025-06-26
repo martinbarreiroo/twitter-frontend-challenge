@@ -12,13 +12,19 @@ export const StyledToastContainer = styled.div`
   padding: 8px 16px;
   align-items: center;
   gap: 16px;
-  position: fixed;
+  position: relative;
   border-radius: 8px;
   border: 1px solid
     ${(props: ToastContainerProps) => {
       switch (props.type) {
         case ToastType.ALERT:
           return props.theme.colors.errorContainer;
+        case ToastType.SUCCESS:
+          return props.theme.colors.main;
+        case ToastType.INFO:
+          return props.theme.colors.light;
+        case ToastType.WARNING:
+          return props.theme.colors.error;
         default:
           return props.theme.colors.errorContainer;
       }
@@ -30,6 +36,12 @@ export const StyledToastContainer = styled.div`
       switch (props.type) {
         case ToastType.ALERT:
           return props.theme.colors.errorContainer;
+        case ToastType.SUCCESS:
+          return props.theme.colors.main;
+        case ToastType.INFO:
+          return props.theme.colors.text;
+        case ToastType.WARNING:
+          return props.theme.colors.error;
         default:
           return props.theme.colors.errorContainer;
       }

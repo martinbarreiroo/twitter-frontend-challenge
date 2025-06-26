@@ -1,10 +1,9 @@
 import Button from "../button/Button";
-import { useCurrentUser, useFollowUser, useUnfollowUser } from "../../hooks";
+import { useFollowUser, useUnfollowUser, useProfile } from "../../hooks";
 import UserDataBox from "../user-data-box/UserDataBox";
 import { useTranslation } from "react-i18next";
 import { ButtonType } from "../button/StyledButton";
 import { StyledFollowUserBoxContainer } from "./StyledFollowUserBox";
-import { Author } from "../../service";
 
 interface FollowUserBoxProps {
   profilePicture?: string;
@@ -20,11 +19,11 @@ const FollowUserBox = ({
   id,
 }: FollowUserBoxProps) => {
   const { t } = useTranslation();
-  const { data: user } = useCurrentUser();
+  const { data: profile } = useProfile(id);
   const followUserMutation = useFollowUser();
   const unfollowUserMutation = useUnfollowUser();
 
-  const isFollowing = user?.followed?.some((f: Author) => f.id === id) || false;
+  const isFollowing = profile?.following || false;
 
   const handleFollow = async () => {
     try {

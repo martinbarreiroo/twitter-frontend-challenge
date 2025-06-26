@@ -9,6 +9,7 @@ import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledH3 } from "../../../components/common/text";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToast } from "../../../contexts/ToastContext";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +20,7 @@ const SignInPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { showError } = useToast();
 
   const handleSubmit = async () => {
     try {
@@ -32,6 +34,7 @@ const SignInPage = () => {
       }
     } catch (error) {
       setError(true);
+      showError("Invalid email or password. Please try again.");
     }
   };
 
