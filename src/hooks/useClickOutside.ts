@@ -3,18 +3,32 @@ import { useEffect, useRef } from "react";
 /**
  * Custom hook that handles clicks outside of a referenced element
  * @param handler - Function to call when clicking outside
+ * @param excludePortals - Whether to exclude portal elements from triggering the handler
  * @returns ref - Reference to attach to the element
  */
 export const useClickOutside = <T extends HTMLElement = HTMLElement>(
-  handler: () => void
+  handler: () => void,
+  excludePortals = true
 ) => {
   const ref = useRef<T>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handler();
+      const target = event.target as Node;
+
+      if (!ref.current || ref.current.contains(target)) {
+        return;
       }
+
+      // If excludePortals is true, check if the click is within a portal
+      if (excludePortals) {
+        const portalRoot = document.getElementById("portal-root");
+        if (portalRoot && portalRoot.contains(target)) {
+          return;
+        }
+      }
+
+      handler();
     };
 
     // Add event listener to document
@@ -24,7 +38,7 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handler]);
+  }, [handler, excludePortals]);
 
   return ref;
 };

@@ -2,7 +2,8 @@ import React, { ReactNode } from "react";
 import { StyledBlurredBackground } from "../common/BlurredBackground";
 import { ModalCloseButton } from "../common/ModalCloseButton";
 import { StyledTweetModalContainer } from "../tweet-modal/TweetModalContainer";
-import { useClickOutside } from "../../hooks";
+import { useModalClickOutside } from "../../hooks";
+import Portal from "../common/Portal";
 
 interface PostModalProps {
   onClose: () => void;
@@ -11,21 +12,23 @@ interface PostModalProps {
 }
 
 export const PostModal = ({ onClose, show, children }: PostModalProps) => {
-  // Use click outside hook to close modal when clicking on the blurred background
-  const modalRef = useClickOutside<HTMLDivElement>(onClose);
+  // Use modal-specific click outside hook for portal compatibility
+  const modalRef = useModalClickOutside<HTMLDivElement>(onClose);
 
   return (
     <>
       {show && (
-        <StyledBlurredBackground onClick={onClose}>
-          <StyledTweetModalContainer
-            ref={modalRef}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ModalCloseButton onClick={onClose} />
-            {children}
-          </StyledTweetModalContainer>
-        </StyledBlurredBackground>
+        <Portal>
+          <StyledBlurredBackground onClick={onClose}>
+            <StyledTweetModalContainer
+              ref={modalRef}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ModalCloseButton onClick={onClose} />
+              {children}
+            </StyledTweetModalContainer>
+          </StyledBlurredBackground>
+        </Portal>
       )}
     </>
   );

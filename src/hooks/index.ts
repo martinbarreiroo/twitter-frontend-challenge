@@ -5,3 +5,4 @@ export * from "./useRecommendations";
 export * from "./useChats";
 export * from "./query-keys";
 export * from "./useClickOutside";
+export * from "./useModalClickOutside";
