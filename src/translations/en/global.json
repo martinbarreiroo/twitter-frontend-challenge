@@ -8,6 +8,7 @@
   },
   "navbar": {
     "home": "Home",
+    "messages": "Messages",
     "profile": "Profile"
   },
   "suggestion": {

@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
+import socketService from "../service/socketService";
 import { User } from "../service";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../hooks/query-keys";
@@ -61,11 +62,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         setUser(userData);
         setIsAuthenticated(true);
+
+        // Initialize socket connection for authenticated user after user data is loaded
+        setTimeout(async () => {
+          try {
+            // Always try to connect/reconnect to ensure fresh connection after page reload
+            console.log("Connecting to socket with token...");
+            // Strip "Bearer " prefix from token for socket authentication
+            const rawToken = token.startsWith("Bearer ")
+              ? token.substring(7)
+              : token;
+
+            // Disconnect first to ensure clean connection state
+            if (socketService.isConnected()) {
+              console.log(
+                "Disconnecting existing socket connection for fresh start"
+              );
+              socketService.disconnect();
+            }
+
+            await socketService.connect(rawToken);
+            console.log("Socket connected successfully");
+          } catch (socketError) {
+            console.warn(
+              "Chat service unavailable:",
+              socketError instanceof Error
+                ? socketError.message
+                : "Unknown error"
+            );
+            // Don't show error to user as chat is not critical for basic functionality
+            // The chat components will handle showing "disconnected" state
+
+            // Retry connection after a delay
+            setTimeout(async () => {
+              try {
+                console.log("Retrying socket connection...");
+                const rawToken = token.startsWith("Bearer ")
+                  ? token.substring(7)
+                  : token;
+                await socketService.connect(rawToken);
+                console.log("Socket retry connection successful");
+              } catch (retryError) {
+                console.warn(
+                  "Socket retry failed:",
+                  retryError instanceof Error
+                    ? retryError.message
+                    : "Unknown error"
+                );
+              }
+            }, 5000); // Retry after 5 seconds
+          }
+        }, 100); // Small delay to ensure user state is set
       } else {
         setIsAuthenticated(false);
         setUser(null);
         localStorage.removeItem("token");
-        // Clear React Query cache when not authenticated
+        // Disconnect socket and clear React Query cache when not authenticated
+        socketService.disconnect();
         queryClient.removeQueries({ queryKey: queryKeys.user });
       }
     } catch (error) {
@@ -73,7 +126,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem("token");
-      // Clear React Query cache on error
+      // Disconnect socket and clear React Query cache on error
+      socketService.disconnect();
       queryClient.removeQueries({ queryKey: queryKeys.user });
       showError("Authentication failed. Please login again.");
     } finally {
@@ -91,7 +145,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
-    // Clear all React Query cache on logout
+    // Disconnect socket and clear all React Query cache on logout
+    socketService.disconnect();
     queryClient.clear();
     showSuccess("Successfully logged out!");
   };

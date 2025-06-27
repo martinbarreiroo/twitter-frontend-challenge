@@ -12,6 +12,7 @@ import {
 } from "../../hooks";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import Button from "../../components/button/Button";
+import ChatButton from "../../components/chat/ChatButton";
 import ProfileFeed from "../../components/feed/ProfileFeed";
 import { StyledContainer } from "../../components/common/Container";
 import { StyledH5 } from "../../components/common/text";
@@ -124,12 +125,21 @@ const ProfilePage = () => {
                   username={profile!.username}
                   profilePicture={profile!.profilePicture}
                 />
-                <Button
-                  buttonType={handleButtonType().component}
-                  size={"100px"}
-                  onClick={handleButtonAction}
-                  text={handleButtonType().text}
-                />
+                <StyledContainer
+                  flexDirection={"row"}
+                  justifyContent={"end"}
+                  alignItems={"center"}
+                  width={"100%"}
+                  gap={"16px"}
+                >
+                  <Button
+                    buttonType={handleButtonType().component}
+                    size={"100px"}
+                    onClick={handleButtonAction}
+                    text={handleButtonType().text}
+                  />
+                  <ChatButton userId={id} size={"100px"} />
+                </StyledContainer>
               </StyledContainer>
             </StyledContainer>
             <StyledProfileFeedContainer>
