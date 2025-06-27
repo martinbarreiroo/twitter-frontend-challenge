@@ -15,6 +15,7 @@ import Button from "../../components/button/Button";
 import ProfileFeed from "../../components/feed/ProfileFeed";
 import { StyledContainer } from "../../components/common/Container";
 import { StyledH5 } from "../../components/common/text";
+import { StyledProfileFeedContainer } from "./ProfileFeedContainer";
 
 const ProfilePage = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -131,13 +132,13 @@ const ProfilePage = () => {
                 />
               </StyledContainer>
             </StyledContainer>
-            <StyledContainer width={"100%"}>
+            <StyledProfileFeedContainer>
               {!profile.isPrivate || isFollowing || isOwnProfile ? (
                 <ProfileFeed />
               ) : (
                 <StyledH5>Private account</StyledH5>
               )}
-            </StyledContainer>
+            </StyledProfileFeedContainer>
             <Modal
               show={showModal}
               text={modalValues.text}

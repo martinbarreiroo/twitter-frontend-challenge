@@ -1,15 +1,30 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { PostData, CommentData } from "../service";
 import { queryKeys } from "./query-keys";
 import { useToast } from "../contexts/ToastContext";
 
 // Posts
-export const usePosts = (query = "") => {
+export const useInfinitePosts = (query = "") => {
   const service = useHttpRequestService();
-  return useQuery({
-    queryKey: [...queryKeys.posts, query],
-    queryFn: () => service.getPosts(query),
+  return useInfiniteQuery({
+    queryKey: [...queryKeys.posts, "infinite", query],
+    queryFn: ({ pageParam = "" }) =>
+      service.getPaginatedPosts(10, pageParam, query),
+    getNextPageParam: (lastPage) => {
+      // Use the last post's createdAt as the cursor for the next page
+      if (lastPage && lastPage.length === 10) {
+        const lastPost = lastPage[lastPage.length - 1];
+        return lastPost.createdAt;
+      }
+      return undefined;
+    },
+    initialPageParam: "",
   });
 };
 
@@ -30,7 +45,7 @@ export const useCreatePost = () => {
   return useMutation({
     mutationFn: (data: PostData) => service.createPost(data),
     onSuccess: () => {
-      // Invalidate posts queries to refetch them
+      // Invalidate both regular and infinite posts queries to refetch them
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
       showSuccess("Your tweet was posted successfully!");
     },
@@ -48,7 +63,7 @@ export const useDeletePost = () => {
   return useMutation({
     mutationFn: (postId: string) => service.deletePost(postId),
     onSuccess: () => {
-      // Invalidate posts queries to refetch them
+      // Invalidate both regular and infinite posts queries to refetch them
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
       showSuccess("Tweet deleted successfully!");
     },
@@ -68,6 +83,24 @@ export const useComments = (postId: string) => {
   });
 };
 
+export const useInfiniteComments = (query = "") => {
+  const service = useHttpRequestService();
+  return useInfiniteQuery({
+    queryKey: [...queryKeys.comments(query), "infinite", query],
+    queryFn: ({ pageParam = "" }) =>
+      service.getPaginatedCommentsByPostId(query, 10, pageParam),
+    getNextPageParam: (lastPage) => {
+      // Use the last comment's createdAt as the cursor for the next page
+      if (lastPage && lastPage.length === 10) {
+        const lastPost = lastPage[lastPage.length - 1];
+        return lastPost.createdAt;
+      }
+      return undefined;
+    },
+    initialPageParam: "",
+  });
+};
+
 export const useCreateComment = () => {
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
@@ -81,7 +114,7 @@ export const useCreateComment = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.comments(postId) });
       // Also invalidate the post itself to update comment count
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
-      // Invalidate posts list to update comment counts there too
+      // Invalidate both regular and infinite posts list to update comment counts there too
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
       showSuccess("Comment posted successfully!");
     },
@@ -100,7 +133,7 @@ export const useCreateReaction = () => {
     mutationFn: ({ postId, reaction }: { postId: string; reaction: string }) =>
       service.createReaction(postId, reaction),
     onSuccess: (_, { postId }) => {
-      // Invalidate the specific post and posts list
+      // Invalidate the specific post and both regular and infinite posts list
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
     },
@@ -115,7 +148,7 @@ export const useDeleteReaction = () => {
     mutationFn: ({ postId, type }: { postId: string; type: string }) =>
       service.deleteReactionByPost(postId, type),
     onSuccess: (_, { postId }) => {
-      // Invalidate the specific post and posts list
+      // Invalidate the specific post and both regular and infinite posts list
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.posts });
     },

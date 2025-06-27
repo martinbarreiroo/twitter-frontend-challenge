@@ -1,8 +1,6 @@
-import React from "react";
 import { RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "styled-components";
 import i18next from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";
@@ -41,7 +39,6 @@ export const Layout = () => {
               </AuthProvider>
             </ToastProvider>
           </ThemeProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </Provider>
     </I18nextProvider>
