@@ -9,7 +9,6 @@ import {
   useCurrentUser,
   useFollowUser,
   useUnfollowUser,
-  useInfiniteProfilePosts,
 } from "../../hooks";
 import { useHttpRequestService } from "../../service/HttpRequestService";
 import Button from "../../components/button/Button";
