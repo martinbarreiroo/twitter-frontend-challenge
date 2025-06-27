@@ -1,7 +1,8 @@
 import React from "react";
-import Feed from "./Feed";
-import { usePosts } from "../../hooks";
+import InfiniteFeed from "./InfiniteFeed";
+import { useInfinitePosts } from "../../hooks";
 import { useFeedQuery } from "../../pages/home-page/components/header/tab-bar/TabBar";
+import { Post } from "../../service";
 
 interface ContentFeedProps {
   query?: string;
@@ -10,8 +11,20 @@ interface ContentFeedProps {
 const ContentFeed: React.FC<ContentFeedProps> = ({ query: propQuery }) => {
   const { query: contextQuery } = useFeedQuery();
   const finalQuery = propQuery ?? contextQuery;
-  const { data: posts = [], isLoading: loading } = usePosts(finalQuery);
 
-  return <Feed posts={posts} loading={loading} />;
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfinitePosts(finalQuery);
+
+  const posts: Post[] = data?.pages.flatMap((page) => page || []) || [];
+
+  return (
+    <InfiniteFeed
+      posts={posts}
+      loading={isLoading}
+      hasNextPage={hasNextPage}
+      fetchNextPage={fetchNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+    />
+  );
 };
 export default ContentFeed;

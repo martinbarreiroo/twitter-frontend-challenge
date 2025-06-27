@@ -22,6 +22,12 @@ export interface CommentData {
   images?: string[];
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  nextCursor?: string;
+  hasMore?: boolean;
+}
+
 export interface Post {
   id: string;
   content: string;
