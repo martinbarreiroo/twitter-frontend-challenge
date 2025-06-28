@@ -291,6 +291,54 @@ const httpRequestService = {
     }
   },
 
+  // New chat endpoints based on backend implementation
+  getConversations: async () => {
+    const res = await api.get(`/chat/conversations`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+
+  getConversation: async (
+    partnerId: string,
+    options?: { limit?: number; before?: string; after?: string }
+  ) => {
+    const res = await api.get(`/chat/conversation/${partnerId}`, {
+      params: options,
+    });
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+
+  sendMessage: async (receiverId: string, content: { content: string }) => {
+    const res = await api.post(`/chat/send/${receiverId}`, content);
+    if (res.status === 201) {
+      return res.data;
+    }
+  },
+
+  markMessagesAsRead: async (data: { conversationPartnerId: string }) => {
+    const res = await api.post(`/chat/mark-read`, data);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+
+  getUnreadCount: async () => {
+    const res = await api.get(`/chat/unread-count`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+
+  canChat: async (partnerId: string) => {
+    const res = await api.get(`/chat/can-chat/${partnerId}`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+
   getMutualFollows: async () => {
     const res = await api.get(`/follow/mutual`);
 

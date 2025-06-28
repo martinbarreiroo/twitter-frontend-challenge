@@ -10,6 +10,8 @@ import ProfilePage from "../../pages/profile/ProfilePage";
 import TweetPage from "../../pages/create-tweet-page/TweetPage";
 import CommentPage from "../../pages/create-comment-page/CommentPage";
 import PostPage from "../../pages/post-page/PostPage";
+import MessagesPage from "../../pages/messages-page/MessagesPage";
+import DedicatedChatPage from "../../pages/dedicated-chat-page/DedicatedChatPage";
 import ProtectedRoute from "../protected-route/ProtectedRoute";
 import PublicRoute from "../public-route/PublicRoute";
 
@@ -67,6 +69,14 @@ export const ROUTER = createBrowserRouter([
       {
         path: "/compose/comment/:id",
         element: <CommentPage />,
+      },
+      {
+        path: "/messages",
+        element: <MessagesPage />,
+      },
+      {
+        path: "/chat/:userId",
+        element: <DedicatedChatPage />,
       },
       {
         path: "*",

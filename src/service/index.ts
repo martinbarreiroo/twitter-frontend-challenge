@@ -91,3 +91,30 @@ export interface ChatDTO {
   users: Author[];
   messages: MessageDTO[];
 }
+
+// New interfaces for the updated chat API
+export interface Conversation {
+  participantId: string;
+  participantName?: string;
+  participantUsername: string;
+  participantProfilePicture?: string;
+  lastMessage?: {
+    id: string;
+    content: string;
+    createdAt: string;
+    senderId: string;
+    receiverId: string;
+    isRead: boolean;
+  };
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
