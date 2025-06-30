@@ -8,6 +8,7 @@ import { User } from "../../../../service";
 const SuggestionBox = () => {
   const { data: users = [] } = useRecommendations(6, 0);
   const { t } = useTranslation();
+  const bucketUrl = process.env.REACT_APP_BUCKET_URL;
 
   return (
     <StyledSuggestionBoxContainer>
@@ -24,7 +25,11 @@ const SuggestionBox = () => {
               id={user.id}
               name={user.name}
               username={user.username}
-              profilePicture={user.profilePicture}
+              profilePicture={
+                user.profilePicture && bucketUrl
+                  ? `${bucketUrl}/${user.profilePicture}`
+                  : undefined
+              }
             />
           ))
       ) : (
