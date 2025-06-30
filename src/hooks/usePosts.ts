@@ -73,16 +73,6 @@ export const useDeletePost = () => {
   });
 };
 
-// Comments
-export const useComments = (postId: string) => {
-  const service = useHttpRequestService();
-  return useQuery({
-    queryKey: queryKeys.comments(postId),
-    queryFn: () => service.getCommentsByPostId(postId),
-    enabled: !!postId,
-  });
-};
-
 export const useInfiniteComments = (query = "") => {
   const service = useHttpRequestService();
   return useInfiniteQuery({

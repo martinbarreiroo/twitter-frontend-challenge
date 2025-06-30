@@ -2,7 +2,8 @@ import type { PostData, SingInData, SingUpData, CommentData } from "./index";
 import axios, { AxiosInstance, AxiosError } from "axios";
 
 const url =
-  process.env.REACT_APP_API_URL || "https://twitter-ieea.onrender.com/api";
+  process.env.REACT_APP_API_URL ||
+  "https://twitter-latest-m355.onrender.com/api";
 
 // Create axios instance with common configuration
 const api: AxiosInstance = axios.create({
@@ -143,7 +144,7 @@ const httpRequestService = {
       params: {
         limit,
         after,
-        ...(query && { query }), // Add query parameter if it exists
+        ...(query && { query }),
       },
     });
     if (res.status === 200) {
@@ -381,12 +382,6 @@ const httpRequestService = {
         after,
       },
     });
-    if (res.status === 200) {
-      return res.data;
-    }
-  },
-  getCommentsByPostId: async (id: string | undefined) => {
-    const res = await api.get(`/comment/${id}`);
     if (res.status === 200) {
       return res.data;
     }
