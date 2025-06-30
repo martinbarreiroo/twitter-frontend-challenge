@@ -50,11 +50,15 @@ const FormikTweetInput = ({
 }: FormikTweetInputProps) => {
   const hasError = error && touched;
   const isOverLimit = value.length > maxLength;
+  const fullSrc =
+    src && process.env.REACT_APP_BUCKET_URL
+      ? `${process.env.REACT_APP_BUCKET_URL}/${src}`
+      : src;
 
   return (
     <div>
       <StyledTweetInputContainer>
-        <Avatar src={src ?? Icon} alt={alt ?? "Icon"} />
+        <Avatar src={fullSrc ?? Icon} alt={alt ?? "Icon"} />
         <StyledBorderlessTextArea
           name={name}
           onChange={onChange}
