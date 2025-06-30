@@ -143,6 +143,7 @@ const httpRequestService = {
       params: {
         limit,
         after,
+        ...(query && { query }), // Add query parameter if it exists
       },
     });
     if (res.status === 200) {

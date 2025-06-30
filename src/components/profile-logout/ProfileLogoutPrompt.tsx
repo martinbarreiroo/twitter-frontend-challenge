@@ -37,6 +37,11 @@ const ProfileLogoutPrompt = ({
     event.stopPropagation();
   };
 
+  const fullSrc =
+    user?.profilePicture && process.env.REACT_APP_BUCKET_URL
+      ? `${process.env.REACT_APP_BUCKET_URL}/${user.profilePicture}`
+      : user?.profilePicture || icon;
+
   return (
     <StyledContainer
       ref={logoutRef}
@@ -49,7 +54,7 @@ const ProfileLogoutPrompt = ({
       cursor={"pointer"}
     >
       <StyledProfileLogoutPromptContainer direction={direction}>
-        <img src={user?.profilePicture ?? icon} className="icon" alt="Icon" />
+        <img src={fullSrc} className="icon" alt="Icon" />
         {logoutOpen && (
           <StyledLogoutPrompt
             margin={margin}
