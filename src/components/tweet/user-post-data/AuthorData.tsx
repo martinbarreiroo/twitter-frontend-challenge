@@ -25,10 +25,15 @@ const AuthorData = ({
     navigate(`/profile/${id}`);
   };
 
+  const BUCKET_URL = process.env.REACT_APP_BUCKET_URL;
+  // Construct the full URL for the profile picture if it exists and BUCKET_URL is available
+  const fullProfilePictureUrl =
+    profilePicture && BUCKET_URL ? `${BUCKET_URL}/${profilePicture}` : null;
+
   return (
     <StyledAuthorDataContainer>
       <Avatar
-        src={profilePicture === null ? Icon : profilePicture!}
+        src={fullProfilePictureUrl === null ? Icon : fullProfilePictureUrl}
         alt={name}
         onClick={redirectToProfile}
       />

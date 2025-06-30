@@ -17,14 +17,22 @@ const ProfileInfo = ({
   username,
   profilePicture,
 }: ProfileInfoContainerProps) => {
-  if (profilePicture) {
-    profilePicture = `${BUCKET_URL}/${profilePicture}`;
-  }
-  console.log(profilePicture);
+  // Construct the full URL for the profile picture if it exists and BUCKET_URL is available
+  const fullProfilePictureUrl =
+    profilePicture && BUCKET_URL ? `${BUCKET_URL}/${profilePicture}` : null;
+
+  // Always ensure we have a valid src string
+  const avatarSrc = fullProfilePictureUrl || Icon;
+
+  console.log("Profile picture URL:", fullProfilePictureUrl);
+  console.log("BUCKET_URL:", BUCKET_URL);
+  console.log("Original profilePicture:", profilePicture);
+  console.log("Final avatar src:", avatarSrc);
+
   return (
     <StyledContainer gap={"32px"} flex={2} flexDirection={"row"}>
       <Avatar
-        src={profilePicture === null ? Icon : profilePicture!}
+        src={avatarSrc}
         width={"133px"}
         height={"133px"}
         alt={name ?? "Name"}
